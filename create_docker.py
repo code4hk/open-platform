@@ -94,7 +94,7 @@ def create_docker_action(options):
 
 def get_docker_ssh_port(container_id):
     command = ['docker port {} 22'.format(container_id)]
-    output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    output = subprocess.check_output(command, shell=True).decode('utf-8')
     data = json.loads(output)
     print (data)
     #port  = data[0]['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     options, args = parser.parse_args()
 
     if (options.action == 'ssh'):
-        get_docker_ssh_port(options.id)
+        get_docker_ssh_port(options.container_id)
     else:
         create_docker_action(options)
 
