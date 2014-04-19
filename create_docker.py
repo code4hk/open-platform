@@ -1,5 +1,6 @@
 #!/usr/bin/python3  
-# Original https://github.com/oskarhane/dockerpress Written by Oskar Hane <oh@oskarhane.com>
+# Credit https://github.com/oskarhane/dockerpress Written by Oskar Hane <oh@oskarhane.com>
+# Credit http://geraldkaszuba.com/quickly-ssh-into-a-docker-container/
 
 import subprocess
 import sys
@@ -91,9 +92,21 @@ if __name__ == "__main__":
     parser = OptionParser(usage=usage)
     parser.add_option("--url", dest="url", help="URL to create a site for.")
 
+    parser.add_option("--id", dest="container_id", help="Container id to ssh.")
+
+    parser.add_option("--action", dest="action", help="Action")
+
+
+
     options, args = parser.parse_args()
 
-    if not (options.url):
+    if (options.action == 'ssh'):
+        get_docker_ssh_port(options.id)
+    else:
+        create_docker_action(options)
+
+def create_docker_action(options):
+     if not (options.url):
         parser.error("You must provide a URL to create a site for")
     if not (re.search('^([a-z0-9\.-]+\.[a-z]{2,4})$', options.url)):
         parser.error('The given url is not a valid domain')
@@ -106,3 +119,12 @@ if __name__ == "__main__":
     else:
         print('Nginx config failed. Please check file /etc/nginx/sites-available/' + options.url)
         print (nginx_conf)
+
+def get_docker_ssh_port(container_id):
+    command = ['docker port {} 22'.format(container_id)]
+    output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    data = json.loads(output)
+    print data
+    #port  = data[0]['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
+    #cmd = 'ssh root@localhost -p {}'.format(port)
+    #subprocess.call(cmd, shell=True)
