@@ -77,7 +77,7 @@ def get_nginx_conf(container_id, url, http_port):
     return listen_str
 
 def create_docker_container(url):
-    image = "ubuntu"
+    image = "open-platform-hk/bootstrap:0.1"
     command = "bin/bash"
     command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' {image} {command}".format(url=url,image=image, command=command)]
     p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
