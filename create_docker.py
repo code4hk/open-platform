@@ -77,6 +77,30 @@ def get_nginx_conf(container_id, url, http_port):
 
     return listen_str
 
+def create_docker_action(options):
+    if not (options.url):
+        parser.error("You must provide a URL to create a site for")
+    if not (re.search('^([a-z0-9\.-]+\.[a-z]{2,4})$', options.url)):
+        parser.error('The given url is not a valid domain')
+    
+    container_id = create_docker_container(options.url)
+    nginx_conf = create_nginx_config(container_id)
+
+    if(nginx_conf == True):
+        print('All ok, you can safetly reload nginx now. service nginx reload')
+    else:
+        print('Nginx config failed. Please check file /etc/nginx/sites-available/' + options.url)
+        print (nginx_conf)
+
+def get_docker_ssh_port(container_id):
+    command = ['docker port {} 22'.format(container_id)]
+    output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    data = json.loads(output)
+    print (data)
+    #port  = data[0]['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
+    #cmd = 'ssh root@localhost -p {}'.format(port)
+    #subprocess.call(cmd, shell=True)
+
 def create_docker_container(url):
     image = "open-platform-hk/bootstrap:0.1"
     command = "bin/bash"
@@ -96,8 +120,6 @@ if __name__ == "__main__":
 
     parser.add_option("--action", dest="action", help="Action")
 
-
-
     options, args = parser.parse_args()
 
     if (options.action == 'ssh'):
@@ -105,26 +127,3 @@ if __name__ == "__main__":
     else:
         create_docker_action(options)
 
-def create_docker_action(options):
-     if not (options.url):
-        parser.error("You must provide a URL to create a site for")
-    if not (re.search('^([a-z0-9\.-]+\.[a-z]{2,4})$', options.url)):
-        parser.error('The given url is not a valid domain')
-    
-    container_id = create_docker_container(options.url)
-    nginx_conf = create_nginx_config(container_id)
-
-    if(nginx_conf == True):
-        print('All ok, you can safetly reload nginx now. service nginx reload')
-    else:
-        print('Nginx config failed. Please check file /etc/nginx/sites-available/' + options.url)
-        print (nginx_conf)
-
-def get_docker_ssh_port(container_id):
-    command = ['docker port {} 22'.format(container_id)]
-    output = subprocess.check_output(cmd, shell=True).decode('utf-8')
-    data = json.loads(output)
-    print data
-    #port  = data[0]['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
-    #cmd = 'ssh root@localhost -p {}'.format(port)
-    #subprocess.call(cmd, shell=True)
