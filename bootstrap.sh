@@ -15,7 +15,7 @@ mkdir -p containers/$PROJECT_CODE
 #create docker project
 ssh-keygen -f ./containers/$PROJECT_CODE/id_rsa_$PROJECT_CODE -N ''
 cd ./containers/$PROJECT_CODE
-../create_docker.py --code $PROJECT_CODE
+../../create_docker.py --code $PROJECT_CODE
 
 service nginx reload
 
