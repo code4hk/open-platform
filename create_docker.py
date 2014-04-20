@@ -89,7 +89,9 @@ def create_docker_action(options):
     if not (re.search('^([a-z0-9\.-]+\.[a-z]{2,4})$', options.url)):
         parser.error('The given url is not a valid domain')
     
-    container_id = create_docker_container(options.url)
+    create_project_specifc_dockerfile(options.project_code)
+    image_tag = create_docker_project_image(options.project_code)
+    container_id = create_docker_container(options.url, image_tag)
     nginx_conf = create_nginx_config(container_id)
 
     if(nginx_conf == True):
@@ -108,11 +110,36 @@ def get_docker_ssh_port(container_id):
     #cmd = 'ssh root@localhost -p {}'.format(port)
     #subprocess.call(cmd, shell=True)
 
-def create_docker_container(url):
-    image = "open-platform-hk/bootstrap:0.1"
+def create_project_specifc_dockerfile(project_code):
+    dockerfile_content = """
+    FROM {image}
+    MAINTAINER {maintainer}
+    ENV PROJECT_CODE {project_code}
+
+    ADD ./id_rsa_$PROJECT_CODE.pub /root/.ssh/
+    RUN cat /root/.ssh/id_rsa_$PROJECT_CODE.pub  >> /root/.ssh/authorized_keys
+    RUN chmod 600 ~/.ssh/authorized_keys
+
+    CMD  /usr/sbin/sshd -D
+    """.format(project_code=project_code,image="open-platform-hk/bootstrap:0.1", maintainer="lauchunyin@gmail.com")
+
+    target=open ("Dockerfile",'w')
+    target.write(dockerfile_content)
+    target.close
+
+def create_docker_project_image(project_code):
+    tag = project_code+":0.1"
+    command = ["docker build -t {tag} .".format(tag=tag)]
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+    output, err = p.communicate()
+    container_id = output.decode("utf-8")
+    p.stdout.close()
+    return tag
+
+def create_docker_container(url,image_tag):
+    image = image_tag
     command = "bin/bash"
-    code = "demo"
-    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' --env code={} {image} {command}".format(url=url,image=image, command=command)]
+    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' {image} {command}".format( url=url,image=image, command=command)]
     p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     output, err = p.communicate()
     container_id = output.decode("utf-8")
@@ -124,16 +151,13 @@ if __name__ == "__main__":
     parser = OptionParser(usage=usage)
     #parser.add_option("--url", dest="url", help="URL to create a site for.")
 
-    parser.add_option("--code", dest="code", help="Project Code to create a site for.")
-    
-
+    parser.add_option("--code", dest="project_code", help="Project Code to create a site for.")
     parser.add_option("--id", dest="container_id", help="Container id to ssh.")
-
     parser.add_option("--action", dest="action", help="Action")
 
     options, args = parser.parse_args()
 
-    options.url = '{code}.dev.code4.hk'.format(options.code) 
+    options.url = '{project_code}.dev.code4.hk'.format(options.project_code) 
 
     if (options.action == 'ssh'):
         get_docker_ssh_port(options.container_id)
