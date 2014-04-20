@@ -6,6 +6,7 @@ import subprocess
 import sys
 import re
 import shutil
+import json
 
 from optparse import OptionParser
 
@@ -48,16 +49,21 @@ def write_and_test_nginx_config(container_id, url, port):
         shutil.move(conf_dir + url, fail_dir + url)
         return False
 
+def get_port_from_address(address):
+    port = re.search(':([0-9]+)\s*$', address)
+    return port
+
+
 def get_docker_http_port(container_id):
     command = ["docker port " + container_id + " 80"]
     p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     output, err = p.communicate()
     port_str = output.decode("utf-8")
-    port = re.search(':([0-9]+)\s*$', port_str)
+    port = get_port_from_address(port_str)
     p.stdout.close()
-    if not(port.group(1)):
+    if not(port):
         return False
-    return port.group(1)
+    return port
 
 def get_nginx_conf(container_id, url, http_port):
     listen_str = 'upstream ' + container_id + " {\n"
@@ -95,7 +101,8 @@ def create_docker_action(options):
 def get_docker_ssh_port(container_id):
     command = ['docker port {} 22'.format(container_id)]
     output = subprocess.check_output(command, shell=True).decode('utf-8')
-    data = json.loads(output)
+    data = get_port_from_address(output)
+    #data = json.loads(output)
     print (data)
     #port  = data[0]['NetworkSettings']['Ports']['22/tcp'][0]['HostPort']
     #cmd = 'ssh root@localhost -p {}'.format(port)
@@ -104,7 +111,8 @@ def get_docker_ssh_port(container_id):
 def create_docker_container(url):
     image = "open-platform-hk/bootstrap:0.1"
     command = "bin/bash"
-    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' {image} {command}".format(url=url,image=image, command=command)]
+    code = "demo"
+    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' --env code={} {image} {command}".format(url=url,image=image, command=command)]
     p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     output, err = p.communicate()
     container_id = output.decode("utf-8")
@@ -114,13 +122,18 @@ def create_docker_container(url):
 if __name__ == "__main__":
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
-    parser.add_option("--url", dest="url", help="URL to create a site for.")
+    #parser.add_option("--url", dest="url", help="URL to create a site for.")
+
+    parser.add_option("--code", dest="code", help="Project Code to create a site for.")
+    
 
     parser.add_option("--id", dest="container_id", help="Container id to ssh.")
 
     parser.add_option("--action", dest="action", help="Action")
 
     options, args = parser.parse_args()
+
+    options.url = '{code}.dev.code4.hk'.format(options.code) 
 
     if (options.action == 'ssh'):
         get_docker_ssh_port(options.container_id)
