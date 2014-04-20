@@ -103,14 +103,17 @@ def create_project_specifc_dockerfile(project_code,maintainer):
     ENV PROJECT_CODE {project_code}
 
     ADD ./id_rsa_$PROJECT_CODE.pub /root/.ssh/
+    ADD ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
     RUN cat /root/.ssh/id_rsa_$PROJECT_CODE.pub  >> /root/.ssh/authorized_keys
     RUN chmod 600 /root/.ssh/authorized_keys
 
     RUN echo "$PROJECT_CODE" >>/home/index.html
-    CMD  /usr/sbin/sshd -D
-    CMD cd /home && python -m SimpleHTTPServer 80 &
+    CMD ["/usr/bin/supervisord"]
 
     """.format(project_code=project_code,image="open-platform-hk/bootstrap:0.1", maintainer=maintainer)
+    print ("result dockerfile:")
+    print (dockerfile_content)
     ##Docker don't support other file name while with context 
     target=open ("Dockerfile",'w')
     target.write(dockerfile_content)
@@ -127,8 +130,7 @@ def create_docker_project_image(project_code):
 
 def create_docker_container(url,image_tag):
     image = image_tag
-    command = "bin/bash"
-    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' {image} {command}".format( url=url,image=image, command=command)]
+    command = ["docker run -d -t -i -p 80 -p 22 --name '{url}' {image}".format( url=url,image=image)]
     p = subprocess.Popen(command, stdout=subprocess.PIPE,stderr=subprocess.PIPE, shell=True)
     output, err = p.communicate()
     container_id = output.decode("utf-8")
@@ -151,7 +153,7 @@ if __name__ == "__main__":
     options.url = '{project_code}.dev.code4.hk'.format(project_code=options.project_code) 
 
     if not (options.maintainer):
-        options.maintainer=''
+        options.maintainer='code4hk@gmail.com'
 
     if (options.action == 'ssh'):
         get_docker_port(options.container_id,22)

@@ -3,6 +3,7 @@ alias dl="docker ps -l -q"
 PROJECT_CODE=$1;
 
 mkdir -p containers/$PROJECT_CODE
+cp supervisord.conf containers/$PROJECT_CODE/
 #docker build -t odhk.dev.code4.hk:0.1 - < Dockerfile_project
 
 #TODO

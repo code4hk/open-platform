@@ -4,11 +4,12 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu precise universe" >> /etc/apt/sou
 RUN echo "We are creating the image for Project: "$CODE
 
 RUN apt-get update
-RUN apt-get -y install python3 git vim openssh-server
+RUN apt-get -y install python3 git vim openssh-server supervisor
 #RUN sed -i -e "s/PermitRootLogin\syes/PermitRootLogin no/g" /etc/ssh/sshd_config
 
 RUN mkdir /root/.ssh
 RUN mkdir /var/run/sshd 
+RUN mkdir -p /var/log/supervisor
 
 EXPOSE 80
 EXPOSE 22
