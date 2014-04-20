@@ -118,7 +118,7 @@ def create_project_specifc_dockerfile(project_code):
 
     ADD ./id_rsa_$PROJECT_CODE.pub /root/.ssh/
     RUN cat /root/.ssh/id_rsa_$PROJECT_CODE.pub  >> /root/.ssh/authorized_keys
-    RUN chmod 600 ~/.ssh/authorized_keys
+    RUN chmod 600 /root/.ssh/authorized_keys
 
     CMD  /usr/sbin/sshd -D
     """.format(project_code=project_code,image="open-platform-hk/bootstrap:0.1", maintainer="lauchunyin@gmail.com")
@@ -149,7 +149,6 @@ def create_docker_container(url,image_tag):
 if __name__ == "__main__":
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
-    #parser.add_option("--url", dest="url", help="URL to create a site for.")
 
     parser.add_option("--code", dest="project_code", help="Project Code to create a site for.")
     parser.add_option("--id", dest="container_id", help="Container id to ssh.")
@@ -157,7 +156,7 @@ if __name__ == "__main__":
 
     options, args = parser.parse_args()
 
-    options.url = '{project_code}.dev.code4.hk'.format(options.project_code) 
+    options.url = '{project_code}.dev.code4.hk'.format(project_code=options.project_code) 
 
     if (options.action == 'ssh'):
         get_docker_ssh_port(options.container_id)
