@@ -106,7 +106,10 @@ def create_project_specifc_dockerfile(project_code,maintainer):
     RUN cat /root/.ssh/id_rsa_$PROJECT_CODE.pub  >> /root/.ssh/authorized_keys
     RUN chmod 600 /root/.ssh/authorized_keys
 
+    RUN echo "$PROJECT_CODE" >>/home/index.html
     CMD  /usr/sbin/sshd -D
+    CMD cd /home && python -m SimpleHTTPServer 80 &
+
     """.format(project_code=project_code,image="open-platform-hk/bootstrap:0.1", maintainer=maintainer)
     ##Docker don't support other file name while with context 
     target=open ("Dockerfile",'w')
