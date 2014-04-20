@@ -156,7 +156,7 @@ if __name__ == "__main__":
         options.maintainer='code4hk@gmail.com'
 
     if (options.action == 'ssh'):
-        get_docker_port(options.container_id,22)
+        print (get_docker_port(options.container_id,22))
     else:
         create_docker_action(options)
 

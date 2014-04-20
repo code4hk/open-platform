@@ -8,7 +8,7 @@ cp supervisord.conf containers/$PROJECT_CODE/
 
 #TODO
 #build base iamge if not exists
-# docker build -t open-platform-hk/bootstrap:0.1 - < Dockerfile_base 
+# docker build -t open-platform-hk/bootstrap:0.1 - < Dockerfile_base
 
 #idealy shoudl genearte from host and inject to container, but docker insert don't support yet
 #https://github.com/dotcloud/docker/issues/905
@@ -17,6 +17,8 @@ cp supervisord.conf containers/$PROJECT_CODE/
 ssh-keygen -f ./containers/$PROJECT_CODE/id_rsa_$PROJECT_CODE -N ''
 cd ./containers/$PROJECT_CODE
 ../../create_docker.py --code $PROJECT_CODE
+
+chown -R ubuntu .
 
 service nginx reload
 
