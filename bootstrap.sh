@@ -1,8 +1,8 @@
 #!/bin/bash
 alias dl="docker ps -l -q"
-mkdir -p containers
-
 PROJECT_CODE=$1;
+
+mkdir -p containers/$PROJECT_CODE
 #docker build -t odhk.dev.code4.hk:0.1 - < Dockerfile_project
 
 #TODO
@@ -13,9 +13,11 @@ PROJECT_CODE=$1;
 #https://github.com/dotcloud/docker/issues/905
 
 #create docker project
-ssh-keygen -f ./containers/id_rsa_$PROJECT_CODE -N ''
-cd ./containers
+ssh-keygen -f ./containers/$PROJECT_CODE/id_rsa_$PROJECT_CODE -N ''
+cd ./containers/$PROJECT_CODE
 ../create_docker.py --code $PROJECT_CODE
+
+service nginx reload
 
 
 ##For Ops
